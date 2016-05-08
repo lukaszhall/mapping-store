@@ -1,0 +1,23 @@
+---
+# config/roles/common/tasks/main.yml
+# Tasks common to all hosts
+
+- name: Install motd
+  become: yes
+  become_method: sudo
+  template: src=motd.j2 dest=/etc/motd owner=root group=root mode=0644
+
+- name: Update apt cache
+  become: yes
+  become_method: sudo
+  apt: update_cache=yes
+
+- name: Install bmon
+  become: yes
+  become_method: sudo
+  apt: name=bmon state=latest
+
+- name: Install tcptrack
+  become: yes
+  become_method: sudo
+  apt: name=tcptrack state=latest

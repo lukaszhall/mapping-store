@@ -1,0 +1,57 @@
+# Install and configure MongoDB
+
+- name: Fetch apt signing key
+  apt_key: keyserver=keyserver.ubuntu.com id=7F0CEB10 state=present
+
+- name: Add 10gen Mongo repo
+  apt_repository: >
+    repo='deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse'
+    state=present
+
+- name: Update apt cache
+  apt: update_cache=yes
+
+- name: Install MongoDB
+  apt: name=mongodb-org state=latest
+
+- name: Start mongod
+  service: name=mongod state=started
+
+# Allow connections to mongo from other hosts
+- name: Bind mongo to IP
+  lineinfile: >
+    dest=/etc/mongod.conf
+    regexp="^bind_ip ="
+    line="bind_ip = {{ mongo_bind_ip }}"
+  notify:
+    - restart mongod
+
+- name: Install pip (for adding mongo user)
+  apt: name=python-pip state=latest
+
+- name: Install pymongo (for adding mongo user)
+  pip: name=pymongo state=latest
+
+- name: Add mongo admin user
+  mongodb_user: >
+    database=admin
+    name=admin
+    password={{ mongo_admin_password }}
+    state=present
+
+- name: Add mongo user script
+  template:
+    src: roles/mongodb/files/create_users
+    dest: /tmp/create_mongo_users
+    mode: "u=rwx,g=rwx,o=rwx"
+
+- name: Execute mongo user script
+  shell: /tmp/create_mongo_users >> /tmp/create_mongo_users.out
+
+#
+#- name: Add mongo user
+#  mongodb_user: >
+#    database={{ mongo_database }}
+#    name={{ mongo_user }}
+#    password={{ mongo_password }}
+#    state=present

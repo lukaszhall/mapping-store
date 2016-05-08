@@ -1,0 +1,4 @@
+#
+#postgres_db_name: clj_app
+#postgres_db_user: clj
+#postgres_db_password: cljpass

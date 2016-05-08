@@ -1,0 +1,20 @@
+#!/bin/bash
+mongo admin -u admin -p {{ mongo_admin_password }} <<EOF
+
+use {{ mongo_database }}
+
+var user = {
+  "user" : "{{ mongo_user }}",
+  "pwd" : "{{ mongo_password }}",
+  roles : [
+      {
+          "role" : "readWrite",
+          "db" : "{{ mongo_database }}"
+      }
+  ]
+}
+
+db.createUser(user);
+
+exit
+EOF

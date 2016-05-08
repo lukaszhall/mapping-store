@@ -1,0 +1,43 @@
+
+- name: Install packages
+  become: yes
+  become_method: sudo
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items:
+    # Database
+    - postgresql
+    - libpq-dev
+    - python-psycopg2
+
+    # Python Dev
+    - python-dev
+    - python-setuptools
+    - python-virtualenv
+
+
+- name: Allow password authentication for local socket users
+  become: yes
+  become_method: sudo
+  copy: src=pg_hba.conf dest=/etc/postgresql/9.3/main/pg_hba.conf force=yes
+  notify:
+    - Restart Postgres
+
+
+- name: Create Database
+  become: yes
+  become_method: sudo
+  become_user: postgres
+  postgresql_db: name={{ postgres_db_name }}
+
+- name: Create User
+  become: yes
+  become_method: sudo
+  become_user: postgres
+  postgresql_user: name={{ postgres_db_user}} password={{ postgres_db_password }} state=present role_attr_flags=NOSUPERUSER,CREATEDB
+
+- name: Provide User with DB permissions
+  become: yes
+  become_method: sudo
+  become_user: postgres
+  postgresql_user: user={{ postgres_db_user }} db={{ postgres_db_name }} priv=ALL
+
